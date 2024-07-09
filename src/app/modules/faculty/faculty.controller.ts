@@ -7,6 +7,7 @@ const getAllFaculties = catchAsync(async (req, res) => {
   // console.log(req?.user);
   // console.log(req.query);
   const result = await FacultyServices.getAllFacultiesFromDB(req.query);
+  console.log(req.cookies); // to send cookie to server we need to install cookie parser
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

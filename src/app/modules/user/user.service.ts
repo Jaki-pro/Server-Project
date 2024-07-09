@@ -1,3 +1,4 @@
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import config from '../../config';
 import { TAcademicSemester } from '../academicSemester/academicSemester.interface';
@@ -11,19 +12,23 @@ import {
   generateFacultyId,
   generateStudentId,
 } from './user.utils';
-import AppError from '../../errors/AppError';
-import httpStatus from 'http-status';
 import { TFaculty } from '../faculty/faculty.interface';
 import { Faculty } from '../faculty/faculty.model';
 import { Admin } from '../admin/admin.model';
 import { TAdmin } from '../admin/admin.interface';
+import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 
 // CREATE Student
-const createStudentIntoDB = async (password: string, payload: TStudent) => {
+const createStudentIntoDB = async (
+  file: any,
+  password: string,
+  payload: TStudent,
+) => {
   // If password is not provided then use default password
   const userData: Partial<TUser> = {};
   userData.password = password || (config.default_pass as string);
   userData.role = 'student';
+  userData.email = payload.email;
   // set generated ID
   const admissionSemester = await AcademicSemester.findById(
     payload.admissionSemester,
@@ -32,10 +37,13 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
   const session = await mongoose.startSession();
   try {
     //start a transaction
-    await session.startTransaction();
+    session.startTransaction();
     userData.id = await generateStudentId(
       admissionSemester as TAcademicSemester,
     );
+    // Send Image to cloudinary
+    const imageName = `${userData.id}${payload?.name?.firstName}`;
+    const uploadResult = await sendImageToCloudinary(imageName, file?.path);
     //create a user (transaction-1)
     const newUser = await User.create([userData], { session }); // builtin static method
     if (!newUser.length) {
@@ -43,6 +51,7 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     }
     payload.id = newUser[0].id;
     payload.user = newUser[0]._id; // reference ID
+    payload.profileImg = uploadResult?.secure_url;
     // create a student (taransaction -2)
     const newStudent = await Student.create([payload], { session });
     if (!newStudent.length) {
@@ -52,7 +61,6 @@ const createStudentIntoDB = async (password: string, payload: TStudent) => {
     await session.endSession(); // End transaction
     return newStudent;
   } catch (err) {
-    console.log('hi');
     await session.abortTransaction(); // Error in transaction-so abort
     await session.endSession(); // End transaction
     throw new Error('Failed to create student');
@@ -65,12 +73,13 @@ const createFacultyIntoDB = async (password: string, payload: TFaculty) => {
   const userData: Partial<TUser> = {};
   userData.password = password || (config.default_pass as string);
   userData.role = 'faculty';
+  userData.email = payload.email;
 
   //start a session
   const session = await mongoose.startSession();
   try {
     //start a transaction
-    await session.startTransaction();
+    session.startTransaction();
     userData.id = await generateFacultyId();
     //create a user (transaction-1)
     const newUser = await User.create([userData], { session });
@@ -99,6 +108,7 @@ const createAdminIntoDB = async (password: string, payload: TAdmin) => {
   // If password is not provided then use default password
   const userData: Partial<TUser> = {};
   userData.password = password || (config.default_pass as string);
+  userData.email = payload.email;
   userData.role = 'admin';
 
   //start a session
@@ -129,8 +139,27 @@ const createAdminIntoDB = async (password: string, payload: TAdmin) => {
   }
 };
 
+const getMe = async (userData: JwtPayload) => {
+  let result = null;
+
+  if (userData.role === 'student') {
+    result = await Student.findOne({ id: userData.userId });
+  } else if (userData.role === 'faculty') {
+    result = await Faculty.findOne({ id: userData.userId });
+  } else if (userData.role === 'admin') {
+    result = await Admin.findOne({ id: userData.userId });
+  }
+  return result;
+};
+
+const changeStatus = async (id: string, payload: { status: string }) => {
+  const result = User.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
 export const UserServices = {
   createStudentIntoDB,
   createFacultyIntoDB,
   createAdminIntoDB,
+  getMe,
+  changeStatus,
 };

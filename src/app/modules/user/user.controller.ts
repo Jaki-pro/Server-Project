@@ -4,9 +4,14 @@ import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 
-const createStudent: RequestHandler = catchAsync(async (req, res) => {
+const createStudent = catchAsync(async (req, res) => {
   const { password, student: studentData } = req.body;
-  const result = await UserServices.createStudentIntoDB(password, studentData);
+  // console.log(req.file);
+  const result = await UserServices.createStudentIntoDB(
+    req.file,
+    password,
+    studentData,
+  );
   // will send data
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -16,7 +21,7 @@ const createStudent: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-const createFaculty: RequestHandler = catchAsync(async (req, res) => {
+const createFaculty = catchAsync(async (req, res) => {
   const { password, faculty: facultyData } = req.body;
   const result = await UserServices.createFacultyIntoDB(password, facultyData);
   // will send data
@@ -28,7 +33,7 @@ const createFaculty: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-const createAdmin: RequestHandler = catchAsync(async (req, res) => {
+const createAdmin = catchAsync(async (req, res) => {
   const { password, admin: adminData } = req.body;
   const result = await UserServices.createAdminIntoDB(password, adminData);
   // will send data
@@ -39,8 +44,32 @@ const createAdmin: RequestHandler = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+const getMe = catchAsync(async (req, res) => {
+  const result = await UserServices.getMe(req.user);
+  // will send data
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'user is retrieved successfully',
+    data: result,
+  });
+});
+
+const changeStatus = catchAsync(async (req, res) => {
+  const result = await UserServices.changeStatus(req.params.id, req.body);
+  // will send data
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'user status changed successfully',
+    data: result,
+  });
+});
 export const UserControllers = {
   createStudent,
   createFaculty,
   createAdmin,
+  getMe,
+  changeStatus,
 };

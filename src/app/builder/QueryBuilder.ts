@@ -40,7 +40,7 @@ class QueryBuiler<T> {
   }
   paginate() {
     const page = Number(this?.query?.page) || 1;
-    const limit = Number(this?.query?.limit) || 50;
+    const limit = Number(this?.query?.limit) || 10;
     const skip = (page - 1) * limit;
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
     return this;
@@ -50,6 +50,19 @@ class QueryBuiler<T> {
       (this?.query?.fields as string)?.split(',')?.join(' ') || '-__v';
     this.modelQuery = this.modelQuery.select(fields);
     return this;
+  }
+  async countTotal() {
+    const filter = this.modelQuery.getFilter(); // all query and filters
+    const total = await this.modelQuery.model.countDocuments(filter); // count documents based on query and filters
+    const page = Number(this?.query?.page) || 1;
+    const limit = Number(this?.query?.limit) || 10;
+    const totalPages = Math.ceil(total / page);
+    return {
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 }
 export default QueryBuiler;

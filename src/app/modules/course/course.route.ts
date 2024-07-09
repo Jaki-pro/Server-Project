@@ -2,15 +2,22 @@ import { Router } from 'express';
 import validateRequest from '../../middlewares/validateRequest';
 import { CourseValidations } from './course.validation';
 import { CourseControllers } from './course.controller';
+import auth from '../../middlewares/auth';
 
 const router = Router();
 router.post(
   '/create-course',
+  auth('admin'),
   validateRequest(CourseValidations.createCourseValidationSchema),
   CourseControllers.createCourse,
 );
+
 router.get('/', CourseControllers.getAllCourses);
-router.get('/:id', CourseControllers.getSingleCourse);
+router.get(
+  '/:id',
+  auth('admin', 'student', 'admin'),
+  CourseControllers.getSingleCourse,
+);
 router.put(
   '/:courseId/assign-factulties',
   validateRequest(CourseValidations.facultiesWithCourseValidationSchema),
@@ -19,6 +26,7 @@ router.put(
 
 router.delete(
   '/:courseId/remove-factulties',
+  auth('admin'),
   validateRequest(CourseValidations.facultiesWithCourseValidationSchema),
   CourseControllers.removeFacultiesFromCourse,
 );
