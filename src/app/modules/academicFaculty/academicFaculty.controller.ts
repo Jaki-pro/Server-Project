@@ -10,16 +10,18 @@ const createAcademicFaculty = catchAsync(async (req, res) => {
     req.body,
   );
   sendResponse(res, {
-    statusCode: 500,
+    statusCode: 200,
     success: true,
     message: 'Academic faculty is created successfully',
     data: result,
   });
 });
 const getAllAcademicFaculties = catchAsync(async (req, res) => {
-  const result = await AcademicFacultyServices.getAllAcademicFacultiesFromDB();
+  const result = await AcademicFacultyServices.getAllAcademicFacultiesFromDB(
+    req.query,
+  );
   sendResponse(res, {
-    statusCode: 500,
+    statusCode: 200,
     success: true,
     message: 'Academic faculties are retrieved successfully',
     data: result,
@@ -31,7 +33,7 @@ const getSingleAcademicFaculty = catchAsync(async (req, res) => {
     req.params._id,
   );
   sendResponse(res, {
-    statusCode: 500,
+    statusCode: 200,
     success: true,
     message: 'Academic faculty is retrieved successfully',
     data: result,
@@ -43,7 +45,7 @@ const updateAcademicFaculty = catchAsync(async (req, res) => {
     req.body,
   );
   sendResponse(res, {
-    statusCode: 500,
+    statusCode: 200,
     success: true,
     message: 'Academic faculty is updated successfully',
     data: result,

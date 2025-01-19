@@ -38,13 +38,17 @@ const createStudentIntoDB = async (
   try {
     //start a transaction
     session.startTransaction();
+    // console.log('ok from service', file);
     userData.id = await generateStudentId(
       admissionSemester as TAcademicSemester,
     );
+    // console.log(userData);
     // Send Image to cloudinary
     const imageName = `${userData.id}${payload?.name?.firstName}`;
+    // console.log('imageName', imageName);
     const uploadResult = await sendImageToCloudinary(imageName, file?.path);
     //create a user (transaction-1)
+    // console.log('upload result', uploadResult?.secure_url);
     const newUser = await User.create([userData], { session }); // builtin static method
     if (!newUser.length) {
       throw new Error('Failed to create user');
@@ -53,6 +57,7 @@ const createStudentIntoDB = async (
     payload.user = newUser[0]._id; // reference ID
     payload.profileImg = uploadResult?.secure_url;
     // create a student (taransaction -2)
+    // console.log('payload', payload);
     const newStudent = await Student.create([payload], { session });
     if (!newStudent.length) {
       throw new Error('Failed to create student');
@@ -63,7 +68,7 @@ const createStudentIntoDB = async (
   } catch (err) {
     await session.abortTransaction(); // Error in transaction-so abort
     await session.endSession(); // End transaction
-    throw new Error('Failed to create student');
+    throw new Error('Failed too create student');
   }
 };
 
@@ -153,7 +158,10 @@ const getMe = async (userData: JwtPayload) => {
 };
 
 const changeStatus = async (id: string, payload: { status: string }) => {
-  const result = User.findByIdAndUpdate(id, payload, { new: true });
+  const result = User.findByIdAndUpdate(id, payload, {
+    new: true,
+  });
+  console.log(id);
   return result;
 };
 export const UserServices = {

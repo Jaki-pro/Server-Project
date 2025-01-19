@@ -18,7 +18,7 @@ router.patch(
   ),
   AcademicSemesterControllers.updateAcademicSemester,
 );
-router.get('/', auth('admin'), AcademicSemesterControllers.getAllSemesters);
+router.get('/', AcademicSemesterControllers.getAllSemesters);
 router.get('/:_id', AcademicSemesterControllers.getSingleSemester);
 // router.get('/', StudentControllers.getAllStudents);
 // router.get('/:studentId', StudentControllers.getSingleStudent);

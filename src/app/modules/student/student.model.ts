@@ -172,16 +172,16 @@ const studentSchema = new Schema<TStudent, StudentModel>(
     },
   },
   {
-    // toJSON: {
-    //   virtuals: true,
-    // },
+    toJSON: {
+      virtuals: true,
+    },
   },
 );
 
 // Virtual
-// studentSchema.virtual('fullName').get(function () {
-//   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
-// });
+studentSchema.virtual('fullName').get(function () {
+  return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
+});
 
 // Document middleware
 // pre save middleware/hook: will work on create save

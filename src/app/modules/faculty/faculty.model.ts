@@ -97,9 +97,9 @@ const facultySchema = new Schema<TFaculty>(
     },
   },
   {
-    // toJSON: {
-    //   virtuals: true,
-    // },
+    toJSON: {
+      virtuals: true,
+    },
     timestamps: true,
   },
 );
@@ -109,6 +109,9 @@ const facultySchema = new Schema<TFaculty>(
 facultySchema.pre('find', async function (next) {
   this.find({ isDeleted: { $ne: true } });
   next();
+});
+facultySchema.virtual('fullName').get(function () {
+  return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
 });
 
 //Pre hook for single find

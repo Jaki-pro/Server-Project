@@ -52,7 +52,7 @@ export const generateFacultyId = async () => {
 };
 export const generateStudentId = async (payload: TAcademicSemester) => {
   const currentId = (await findLastStudentById(payload)) || (0).toString();
-  // console.log(object);
+  console.log('gen');
   const incrementId = (Number(currentId) + 1).toString().padStart(4, '0');
   return `${payload.year}${payload.code}${incrementId}`;
 };
